@@ -1,1 +1,39 @@
-from fastapi import FastAPI\n\napp = FastAPI()\n\n@app.get('/')\ndef home():\n    return {'msg': 'Hola desde FastAPI'}
+from fastapi import FastAPI
+from database import engine, Base
+import models
+from routers import empleados, clientes, lotes, proveedores, productos, reportes, ventas  
+
+# -Crear tablas en SQLite si no existen aún -
+
+Base.metadata.create_all(bind=engine)
+
+# -Instancia principal de la aplicación FastAPI -
+
+app = FastAPI()
+
+
+# -Endpoint raíz para ver el estado del servicio-
+
+@app.get("/")
+def root():
+    return {
+        "title": "📦 Backend del Almacén del Vecino 🛒",
+        "message": "Bienvenido al sistema que mueve nuestro almacén con FastAPI 🚀",
+        "features": [
+            "✅ Gestión de empleados",
+            "✅ Control de inventario",
+            "✅ Registro de clientes",
+            "✅ Ventas y reportes en tiempo real"
+        ],
+        "status": "🟢 API corriendo sin problemas"
+    }
+
+# -Registro de routers (módulos de endpoints por recurso)-
+
+app.include_router(empleados.router)
+app.include_router(clientes.router)
+app.include_router(lotes.router)
+app.include_router(proveedores.router)
+app.include_router(productos.router)
+app.include_router(reportes.router)
+app.include_router(ventas.router)
