@@ -3,7 +3,11 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
 # URL de conexión a SQLite (archivo local 'mercado.db' en el mismo directorio)
-DATABASE_URL = "sqlite:///./mercado.db"
+# DATABASE_URL = "sqlite:///./mercado.db"
+
+import os
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATABASE_URL = f"sqlite:///{os.path.join(BASE_DIR, 'mercado.db')}"
 
 # Se crea el engine de SQLAlchemy.
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
