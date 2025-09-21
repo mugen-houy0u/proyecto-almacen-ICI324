@@ -1,23 +1,84 @@
-from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+import sqlite3
 
-# URL de conexión a SQLite (archivo local 'mercado.db' en el mismo directorio)
-DATABASE_URL = "sqlite:///./mercado.db"
+createEmpleado = """CREATE TABLE IF NOT EXISTS Empleado(
+            id_empleado INTEGER PRIMARY KEY AUTOINCREMENT,
+            nombre TEXT,
+            rut_empleado TEXT,
+            telefono TEXT,
+            correo TEXT,
+            direccion TEXT,
+            fecha_de_ingreso TEXT,
+            rol TEXT,
+            usuario TEXT,
+            contrasena TEXT
+            )"""
 
-# Se crea el engine de SQLAlchemy.
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+createProveedor = """CREATE TABLE IF NOT EXISTS Proveedor(
+            id_proveedor INTEGER PRIMARY KEY AUTOINCREMENT,
+            id_empleado INTEGER,
+            correo TEXT,
+            telefono TEXT,
+            direccion TEXT,
+            nombre_empresa TEXT,
+            FOREIGN KEY(id_empleado) REFERENCES Empleado(id_empleado))"""
 
-# Factoría de sesiones: sin autocommit y sin autoflush para tener control explícito.
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+createCliente = """CREATE TABLE IF NOT EXISTS Cliente(
+            rut_cliente TEXT PRIMARY KEY,
+            nombre_completo TEXT,
+            direccion TEXT,
+            celular TEXT,
+            correo TEXT,
+            fecha_de_nacimiento TEXT
+            )"""
 
-# Clase base para modelos declarativos (ORM).
-Base = declarative_base()
+createVenta = """CREATE TABLE IF NOT EXISTS Venta(
+            id_venta INTEGER PRIMARY KEY AUTOINCREMENT,
+            id_empleado INTEGER,
+            rut_cliente TEXT,
+            total_venta INTEGER,
+            fecha_venta TEXT,
+            metodo_de_pago TEXT,
+            FOREIGN KEY(id_empleado) REFERENCES Empleado(id_empleado),
+            FOREIGN KEY(rut_cliente) REFERENCES Cliente(rut_cliente))"""
 
-# Dependencia para obtener sesión en cada request
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db  #La sesión queda disponible dentro del endpoint
-    finally:
-        db.close() #Cierre garantizado aunque haya excepciones
+createReporte = """CREATE TABLE IF NOT EXISTS Reporte(
+            id_reporte INTEGER PRIMARY KEY AUTOINCREMENT,
+            id_venta INTEGER,
+            fecha_inicio TEXT,
+            fecha_final TEXT,
+            tipo_reporte TEXT,
+            total_ventas INTEGER,
+            FOREIGN KEY(id_venta) REFERENCES Venta(id_venta))"""
+
+createProducto = """CREATE TABLE IF NOT EXISTS Producto(
+            sku INTEGER PRIMARY KEY,
+            nombre TEXT,
+            descripcion TEXT,
+            precio INTEGER,
+            stock INTEGER,
+            categoria TEXT,
+            marca TEXT,
+            proveedor TEXT
+            )"""
+
+crearLote = """CREATE TABLE IF NOT EXISTS Lote(
+            id_empleado INTEGER REFERENCES Empleado(id_empleado),
+            sku INTEGER REFERENCES Producto(sku),
+            PRIMARY KEY(id_empleado, sku))"""
+
+def crearBD():
+    cursor.execute(createEmpleado)
+    cursor.execute(createProveedor)
+    cursor.execute(createCliente)
+    cursor.execute(createVenta)
+    cursor.execute(createReporte)
+    cursor.execute(createProducto)
+    cursor.execute(crearLote)
+
+conn = sqlite3.connect('mercado.db')
+cursor = conn.cursor()
+crearBD()
+
+with open("dump.sql", "r", encoding="utf-8") as dump:
+    sql_script = dump.read()
+cursor.executescript(sql_script)
