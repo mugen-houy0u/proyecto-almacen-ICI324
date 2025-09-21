@@ -37,3 +37,11 @@ app.include_router(proveedores.router)
 app.include_router(productos.router)
 app.include_router(reportes.router)
 app.include_router(ventas.router)
+
+# ======= DESPLIEGUE EN RAILWAY =======
+import os
+import uvicorn
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 8080))  # Railway asigna el puerto automáticamente
+    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)
