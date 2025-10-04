@@ -1,8 +1,8 @@
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
-import OperadorForm from '../../components/forms/OperadorForm.astro';
+import OperadoresList from '../../components/OperadoresList.astro';
 ---
+
 <AdminLayout>
-  <h2>Gestión de Operadores</h2>
-  <OperadorForm />
+  <OperadoresList client:load />
 </AdminLayout>

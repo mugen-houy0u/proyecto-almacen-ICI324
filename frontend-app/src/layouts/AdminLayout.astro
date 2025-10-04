@@ -1,15 +1,22 @@
 ---
-import SidebarAdmin from '../components/SidebarAdmin.astro';
-import Header from '../components/Header.astro';
-import Footer from '../components/Footer.astro';
+import "../styles/global.css";
+import HeaderAdmin from "../components/HeaderAdmin.astro";
+import Footer from "../components/Footer.astro";
 ---
-<div class="admin-dashboard">
-  <Header />
-  <div class="main-content" style="display:flex;">
-    <SidebarAdmin />
-    <section class="page-content" style="flex:1; padding:1rem;">
-      <slot /> <!-- Contenido de cada página admin -->
-    </section>
-  </div>
-  <Footer />
-</div>
+
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>Admin Dashboard | El Vecino</title>
+  </head>
+
+  <body class="bg-gradient-to-br from-gray-200 via-gray-400 to-gray-600 min-h-screen flex flex-col">
+    <HeaderAdmin />
+
+    <main class="flex-1 p-6 pt-28 flex flex-col">
+      <slot /> <!-- Contenido dinámico de cada página -->
+    </main>
+
+    <Footer />
+  </body>
+</html>
