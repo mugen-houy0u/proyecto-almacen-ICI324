@@ -1,0 +1,15 @@
+---
+import SidebarAdmin from '../components/SidebarAdmin.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+---
+<div class="admin-dashboard">
+  <Header />
+  <div class="main-content" style="display:flex;">
+    <SidebarAdmin />
+    <section class="page-content" style="flex:1; padding:1rem;">
+      <slot /> <!-- Contenido de cada página admin -->
+    </section>
+  </div>
+  <Footer />
+</div>
