@@ -1,46 +1,28 @@
-# Astro Starter Kit: Basics
+# Backend – FastAPI | Proyecto Almacén (ICI324)
 
-```sh
-npm create astro@latest -- --template basics
-```
+## Objetivo
+Servir la API que consumirá el frontend (Astro + Preact) para la gestión de operadores del almacén.
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+---
 
-## 🚀 Project Structure
+## 1. Endpoints obligatorios
 
-Inside of your Astro project, you'll see the following folders and files:
+| Método | Ruta | Descripción | Body (entrada) | Respuesta exitosa |
+|--------|------|-------------|----------------|-------------------|
+| `GET` | `/api/operadores` | Listar todos los operadores | — | `200` `[{id, rut, nombre, rol}]` |
+| `GET` | `/api/operadores/{id}` | Obtener **un** operador | — | `200` `{id, rut, nombre, rol}` |
+| `POST` | `/api/operadores` | Crear operador | `{rut, nombre, rol}` | `201` `{id, rut, nombre, rol}` |
+| `PUT` | `/api/operadores/{id}` | Actualizar operador | `{rut, nombre, rol}` | `200` `{msg: "ok"}` u objeto |
+| `DELETE` | `/api/operadores/{id}` | Eliminar operador | — | `200` `{msg: "Operador eliminado"}` |
 
-```text
-/
-├── public/
-│   └── favicon.svg
-├── src
-│   ├── assets
-│   │   └── astro.svg
-│   ├── components
-│   │   └── Welcome.astro
-│   ├── layouts
-│   │   └── Layout.astro
-│   └── pages
-│       └── index.astro
-└── package.json
-```
+---
 
-To learn more about the folder structure of an Astro project, refer to [our guide on project structure](https://docs.astro.build/en/basics/project-structure/).
+## 2. Formatos y validaciones
 
-## 🧞 Commands
-
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+- **Content-Type**: `application/json` (entrada y salida).
+- **RUT**: formato chileno (puntos y guión) y **único** en BD.
+- **rol** solo acepta: `administrador`, `operador`, `supervisor`.
+- **nombre**: entre 3 y 100 caracteres.
+- En errores responder:
+  ```json
+  { "error": "mensaje corto" }
