@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from database import engine, Base
 import models
-from routers import empleados, clientes, lotes, proveedores, productos, reportes, ventas 
+from routers import empleados, clientes, lotes, proveedores, productos, reportes, ventas, facturas
 from fastapi.middleware.cors import CORSMiddleware 
 
 # -Crear tablas en SQLite si no existen aún -
@@ -54,6 +54,7 @@ app.include_router(proveedores.router)
 app.include_router(productos.router)
 app.include_router(reportes.router)
 app.include_router(ventas.router)
+app.include_router(facturas.router)
 
 # ======= DESPLIEGUE EN RAILWAY =======
 import os

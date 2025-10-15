@@ -67,7 +67,8 @@ crearLote = """CREATE TABLE IF NOT EXISTS Lote(
             PRIMARY KEY(id_empleado, sku))"""
 
 crearFactura = """CREATE TABLE IF NOT EXISTS Factura(
-                rut TEXT PRIMARY KEY,
+                id_factura INTEGER PRIMARY KEY AUTOINCREMENT,
+                rut TEXT,
                 id_proveedor INTEGER,
                 nombre_razon_social TEXT,
                 correo TEXT,
