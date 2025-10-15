@@ -6,7 +6,7 @@ from helper import column_exists
 from database import get_db
 
 # Grupo de rutas de Clientes
-router = APIRouter(prefix="/clientes", tags=["CLientes"])
+router = APIRouter(prefix="/clientes", tags=["Clientes"])
 
 # SELECT simple: listar todos los clientes
 @router.get("/")
