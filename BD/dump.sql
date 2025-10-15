@@ -12,6 +12,13 @@ INSERT INTO Proveedor (id_empleado, correo, telefono, direccion, nombre_empresa)
 (3, 'contacto@proveedor4.com', '954321098', 'Calle Cuatro 444', 'Proveedor Cuatro'),
 (3, 'contacto@proveedor5.com', '943210987', 'Calle Cinco 555', 'Proveedor Cinco');
 
+INSERT INTO Factura (rut, id_proveedor, nombre_razon_social, correo, giro, fecha_emision, forma_de_pago) VALUES
+('11.222.333-4', 1, 'Proveedor Uno', 'contacto@proveedor1.com', 471100, '2025-10-01', 'Crédito'),
+('22.333.444-5', 2, 'Proveedor Dos', 'contacto@proveedor2.com', 469000, '2025-09-28', 'Crédito'),
+('33.444.555-6', 3, 'Proveedor Tres', 'contacto@proveedor3.com', 472000, '2025-10-10', 'Efectivo'),
+('44.555.666-7', 4, 'Proveedor Cuatro', 'contacto@proveedor4.com', 469000, '2025-09-28', 'Crédito'),
+('55.666.777-8', 5, 'Proveedor Cinco', 'contacto@proveedor5.com', 472000, '2025-10-10', 'Efectivo');
+
 INSERT INTO Producto (sku, nombre, descripcion, precio, stock, categoria, marca, proveedor) VALUES
 (1001, 'Producto A', 'Descripcion A', 1000, 50, 'Categoria1', 'Marca1', 'Proveedor Uno'),
 (1002, 'Producto B', 'Descripcion B', 2000, 50, 'Categoria1', 'Marca1', 'Proveedor Uno'),

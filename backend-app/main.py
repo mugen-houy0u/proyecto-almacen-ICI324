@@ -1,7 +1,8 @@
 from fastapi import FastAPI
 from database import engine, Base
 import models
-from routers import empleados, clientes, lotes, proveedores, productos, reportes, ventas  
+from routers import empleados, clientes, lotes, proveedores, productos, reportes, ventas 
+from fastapi.middleware.cors import CORSMiddleware 
 
 # -Crear tablas en SQLite si no existen aún -
 
@@ -9,7 +10,23 @@ Base.metadata.create_all(bind=engine)
 
 # -Instancia principal de la aplicación FastAPI -
 
-app = FastAPI()
+app = FastAPI(title="El vecino-Backend")
+
+# Lista de orígenes permitidos (dominios desde los cuales se pueden hacer solicitudes al backend)
+origins = [
+    "http://localhost:4321",  # Dirección y puerto donde corre Astro (modo desarrollo)
+    "http://127.0.0.1:4321",  # Variante local alternativa para el mismo entorno
+]
+
+# Se agrega el middleware CORS a la aplicación FastAPI
+# Esto habilita las políticas de intercambio de recursos entre dominios
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,         # Define qué dominios pueden acceder al backend
+    allow_credentials=True,        # Permite el uso de cookies, cabeceras de autenticación, etc.
+    allow_methods=["*"],           # Autoriza todos los métodos HTTP (GET, POST, PUT, DELETE, etc.)
+    allow_headers=["*"],           # Permite todos los tipos de cabeceras (headers) en las peticiones
+)
 
 
 # -Endpoint raíz para ver el estado del servicio-
