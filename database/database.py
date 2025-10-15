@@ -66,6 +66,16 @@ crearLote = """CREATE TABLE IF NOT EXISTS Lote(
             sku INTEGER REFERENCES Producto(sku),
             PRIMARY KEY(id_empleado, sku))"""
 
+crearFactura = """CREATE TABLE IF NOT EXISTS Factura(
+                rut TEXT PRIMARY KEY,
+                id_proveedor INTEGER,
+                nombre_razon_social TEXT,
+                correo TEXT,
+                giro INTEGER,
+                fecha_emision TEXT,
+                forma_de_pago TEXT,
+                FOREIGN KEY(id_proveedor) REFERENCES Proveedor(id_proveedor))"""
+
 def crearBD():
     cursor.execute(createEmpleado)
     cursor.execute(createProveedor)
@@ -74,6 +84,7 @@ def crearBD():
     cursor.execute(createReporte)
     cursor.execute(createProducto)
     cursor.execute(crearLote)
+    cursor.execute(crearFactura)
 
 conn = sqlite3.connect('mercado.db')
 cursor = conn.cursor()
@@ -81,4 +92,5 @@ crearBD()
 
 with open("dump.sql", "r", encoding="utf-8") as dump:
     sql_script = dump.read()
+    
 cursor.executescript(sql_script)
