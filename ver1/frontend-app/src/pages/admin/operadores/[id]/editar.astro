@@ -1,0 +1,10 @@
+---
+/**
+ * Página: Edición de Empleado
+ * Renderiza el componente React que maneja el formulario.
+ */
+import EditarOperadorForm from "@/components/EditarOperadorForm.jsx";
+const { id } = Astro.params;
+---
+
+<EditarOperadorForm id={id} client:load />
