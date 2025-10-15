@@ -1,14 +1,24 @@
 import { defineConfig } from 'astro/config'
 import preact from '@astrojs/preact'
-import tailwind from '@astrojs/tailwind'
 import { fileURLToPath } from 'node:url'
 
+import tailwindcss from '@tailwindcss/vite';
+
+import node from "@astrojs/node";
+
 export default defineConfig({
-  integrations: [preact(), tailwind()],
+  integrations: [preact()],
+  
+  output: "server",
+  adapter: node({
+    mode: 'standalone',
+  }),
+
   vite: {
     resolve: {
       alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
     },
+
     server: {
       port: 4321,
       proxy: {
@@ -18,5 +28,7 @@ export default defineConfig({
         },
       },
     },
+
+    plugins: [tailwindcss()],
   },
 })
