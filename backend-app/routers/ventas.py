@@ -4,6 +4,8 @@ from sqlalchemy import text as sql_text
 import models
 from helper import column_exists
 from database import get_db
+from sqlalchemy import desc, asc
+from sqlalchemy import func
 
 # Grupo de rutas de "Ventas"
 router = APIRouter(prefix="/ventas", tags=["Ventas"])
@@ -111,3 +113,84 @@ def alter_add_descuento_venta(db: Session = Depends(get_db)):
         db.commit()
         return {"message": "Columna 'descuento' agregada a Venta"}
     return {"message": "La columna ya existe"}
+from sqlalchemy import desc, asc
+
+# GET: lista las ventas ordenadas por fecha (más recientes primero)
+@router.get("/ventas/ordenadas")
+def get_ventas_ordenadas(db: Session = Depends(get_db), orden: str = "desc"):
+    """
+    Lista todas las ventas ordenadas por fecha.
+    Parámetro opcional:
+      - orden=desc → más recientes primero (por defecto)
+      - orden=asc  → más antiguas primero
+    """
+    try:
+        if orden.lower() == "asc":
+            resultados = db.query(models.Venta).order_by(asc(models.Venta.fecha_venta)).all()
+        else:
+            resultados = db.query(models.Venta).order_by(desc(models.Venta.fecha_venta)).all()
+
+        if not resultados:
+            raise HTTPException(status_code=404, detail="No hay ventas registradas.")
+
+        return [
+            {
+                "id_venta": v.id_venta,
+                "rut_cliente": v.rut_cliente,
+                "id_empleado": v.id_empleado,
+                "fecha_venta": v.fecha_venta,
+                "total_venta": v.total_venta,
+                "metodo_de_pago": v.metodo_de_pago
+            }
+            for v in resultados
+        ]
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error al ordenar las ventas: {e}")
+
+
+
+@router.get("/ventas/por-fecha")
+def get_ventas_por_fecha(fecha: str, db: Session = Depends(get_db)):
+    """
+    Devuelve todas las ventas que coinciden exactamente con la fecha indicada (tipo string).
+    Además incluye la suma total de las ventas de ese día (sin repetirla en cada registro).
+    Ejemplo: /ventas/por-fecha?fecha=2025-10-16
+    """
+    try:
+        # Buscar las ventas por coincidencia exacta de texto
+        ventas = db.query(models.Venta).filter(models.Venta.fecha_venta == fecha).all()
+
+        if not ventas:
+            raise HTTPException(status_code=404, detail=f"No se encontraron ventas para la fecha {fecha}.")
+
+        # Calcular la suma total de ese día
+        total_dia = (
+            db.query(func.sum(models.Venta.total_venta))
+            .filter(models.Venta.fecha_venta == fecha)
+            .scalar()
+        )
+
+        # Formatear respuesta (sin total_dia dentro de cada venta)
+        reporte = [
+            {
+                "id_venta": v.id_venta,
+                "rut_cliente": v.rut_cliente,
+                "id_empleado": v.id_empleado,
+                "fecha_venta": v.fecha_venta,
+                "total_venta": v.total_venta,
+                "metodo_de_pago": v.metodo_de_pago
+            }
+            for v in ventas
+        ]
+
+        return {
+            "message": f"Ventas del {fecha}",
+            "total_dia": total_dia,
+            "ventas": reporte
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error al obtener ventas por fecha: {e}")
+
+
