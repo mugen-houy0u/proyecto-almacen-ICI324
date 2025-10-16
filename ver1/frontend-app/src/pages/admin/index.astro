@@ -7,9 +7,11 @@ import AdminLayout from '@/layouts/AdminLayout.astro';
 <!-- El título se pasa como una "prop" para que el layout pueda usarlo en la etiqueta <title> -->
 <AdminLayout title="Admin Dashboard | El Vecino">
   
-  <!-- 3. Solo se mantiene el contenido específico de esta página -->
-  <!-- El header, body, etc., ya están definidos en AdminLayout.astro -->
-  <main class="pt-28 p-8 flex flex-col gap-10 items-center">
+  <!-- 
+    3. Contenedor para el contenido específico de esta página.
+       Ya no se usa <main> ni pt-28, porque AdminLayout se encarga de eso.
+  -->
+  <div class="flex flex-col gap-10 items-center">
     <!-- Título -->
     <h1 class="text-5xl font-extrabold text-white drop-shadow-lg mb-4">
       Admin Dashboard
@@ -106,5 +108,5 @@ import AdminLayout from '@/layouts/AdminLayout.astro';
         </div>
       </div>
     </section>
-  </main>
+  </div>
 </AdminLayout>

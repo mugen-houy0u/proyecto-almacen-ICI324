@@ -1,28 +1,40 @@
 ---
-import "../styles/global.css";
-import HeaderAdmin from "../components/HeaderAdmin.astro";
-import Footer from "../components/Footer.astro";
+// src/layouts/AdminLayout.astro
+
+// 1. Se importan los componentes y estilos necesarios
+import HeaderAdmin from '@/components/HeaderAdmin.astro';
+import Footer from '@/components/Footer.astro';
+import '@/styles/global.css'; // 👈 AÑADIDO: Importación de los estilos globales
+
+// Se define la propiedad 'title' con un valor por defecto
+const { title = "Admin Panel | El Vecino" } = Astro.props;
 ---
 
+<!DOCTYPE html>
 <html lang="es">
-  <head>
+<head>
     <meta charset="utf-8" />
-    <title>Admin Dashboard | El Vecino</title>
-    <!-- justo antes de cerrar </head> -->
-    <script 
-      src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"
-      defer
-      data-html2pdf
-    ></script>
-  </head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+</head>
+<body class="bg-gradient-to-br from-gray-200 via-gray-400 to-gray-600 min-h-screen flex flex-col">
 
-  <body class="bg-gradient-to-br from-gray-200 via-gray-400 to-gray-600 min-h-screen flex flex-col">
+    <!-- La cabecera fija se renderiza primero -->
     <HeaderAdmin />
 
-    <main class="flex-1 p-6 pt-28 flex flex-col">
-      <slot /> <!-- Contenido dinámico de cada página -->
+    <!-- 
+      Contenido principal:
+      - flex-1: Hace que este elemento crezca para ocupar todo el espacio disponible, empujando el footer hacia abajo.
+      - pt-28: Añade el padding superior necesario para que el contenido no quede oculto detrás del header fijo.
+      - px-8: Mantiene un padding lateral consistente.
+    -->
+    <main class="flex-1 pt-28 px-8">
+        <!-- El contenido específico de cada página se insertará aquí -->
+        <slot />
     </main>
 
+    <!-- El pie de página se renderiza al final -->
     <Footer />
-  </body>
+
+</body>
 </html>
