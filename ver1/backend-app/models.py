@@ -38,7 +38,8 @@ class Proveedor(Base):
     telefono = Column(String)
     direccion = Column(String)
     nombre_empresa = Column(String)
-
+    
+    facturas = relationship("Factura", back_populates="proveedor")
     empleado = relationship("Empleado", back_populates="proveedores")
 
 # =========================
@@ -124,3 +125,23 @@ class Lote(Base):
 
     empleado = relationship("Empleado", back_populates="lotes")
     producto = relationship("Producto", back_populates="lotes")
+    
+# =========================
+#  ENTIDAD: Factura
+# =========================
+
+
+class Factura(Base):
+    __tablename__ = "Factura"
+    id_factura = Column(Integer, primary_key=True, autoincrement=True) # PK
+    rut = Column(String) 
+    id_proveedor = Column(Integer, ForeignKey("Proveedor.id_proveedor"))  # FK → Proveedor
+    nombre_razon_social = Column(String)
+    correo = Column(String)
+    giro = Column(Integer)
+    fecha_emision = Column(String)
+    forma_de_pago = Column(String)
+
+    # Relación con Proveedor (una Factura pertenece a un Proveedor)
+    proveedor = relationship("Proveedor", back_populates="facturas")
+

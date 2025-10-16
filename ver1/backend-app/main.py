@@ -1,35 +1,36 @@
 from fastapi import FastAPI
 from database import engine, Base
 import models
-from routers import empleados, clientes, lotes, proveedores, productos, reportes, ventas
-
-# 👈 1. Importa el middleware de CORS
-from fastapi.middleware.cors import CORSMiddleware
+from routers import empleados, clientes, lotes, proveedores, productos, reportes, ventas, facturas
+from fastapi.middleware.cors import CORSMiddleware 
 
 # -Crear tablas en SQLite si no existen aún -
+
 Base.metadata.create_all(bind=engine)
 
 # -Instancia principal de la aplicación FastAPI -
-app = FastAPI()
 
-# -Orígenes permitidos (los que pueden hacer peticiones a tu API)-
+app = FastAPI(title="El vecino-Backend")
+
+# Lista de orígenes permitidos (dominios desde los cuales se pueden hacer solicitudes al backend)
 origins = [
-    "http://localhost:4321",  # puerto de Astro
-    "http://12-7.0.0.1:4321",
+    "http://localhost:4321",  # Dirección y puerto donde corre Astro (modo desarrollo)
+    "http://127.0.0.1:4321",  # Variante local alternativa para el mismo entorno
 ]
 
-# 👇 2. Añade el middleware de CORS a tu aplicación
-#    Esto debe ir ANTES de registrar los routers.
+# Se agrega el middleware CORS a la aplicación FastAPI
+# Esto habilita las políticas de intercambio de recursos entre dominios
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],  # Permite todos los métodos (GET, POST, etc.)
-    allow_headers=["*"],  # Permite todos los headers
+    allow_origins=origins,         # Define qué dominios pueden acceder al backend
+    allow_credentials=True,        # Permite el uso de cookies, cabeceras de autenticación, etc.
+    allow_methods=["*"],           # Autoriza todos los métodos HTTP (GET, POST, PUT, DELETE, etc.)
+    allow_headers=["*"],           # Permite todos los tipos de cabeceras (headers) en las peticiones
 )
 
 
 # -Endpoint raíz para ver el estado del servicio-
+
 @app.get("/")
 def root():
     return {
@@ -45,6 +46,7 @@ def root():
     }
 
 # -Registro de routers (módulos de endpoints por recurso)-
+
 app.include_router(empleados.router)
 app.include_router(clientes.router)
 app.include_router(lotes.router)
@@ -52,6 +54,7 @@ app.include_router(proveedores.router)
 app.include_router(productos.router)
 app.include_router(reportes.router)
 app.include_router(ventas.router)
+app.include_router(facturas.router)
 
 # ======= DESPLIEGUE EN RAILWAY =======
 import os
