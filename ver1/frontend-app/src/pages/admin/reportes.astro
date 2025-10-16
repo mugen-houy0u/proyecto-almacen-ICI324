@@ -1,22 +1,101 @@
 ---
-import AdminLayout from "../../layouts/AdminLayout.astro";
-import { ReportsForm } from "../../components/reports-form";
-import { ReportsResults } from "../../components/reports-results";
+// 1. Se importa el layout principal para mantener la consistencia visual
+import AdminLayout from '@/layouts/AdminLayout.astro';
+
+// 2. Se define la estructura del objeto Reporte con TypeScript
+interface Reporte {
+  id_reporte: number;
+  id_venta: number;
+  fecha_inicio: string; // Formato YYYY-MM-DD
+  fecha_final: string;  // Formato YYYY-MM-DD
+  tipo_de_reporte: 'Diario' | 'Semanal' | 'Mensual';
+  total_ventas: number;
+}
+
+// 3. Se crean datos de ejemplo (mock data) ya que el backend de ventas está en desarrollo
+const reportes: Reporte[] = [
+  {
+    id_reporte: 101,
+    id_venta: 501,
+    fecha_inicio: '2025-10-14',
+    fecha_final: '2025-10-14',
+    tipo_de_reporte: 'Diario',
+    total_ventas: 152300,
+  },
+  {
+    id_reporte: 102,
+    id_venta: 502,
+    fecha_inicio: '2025-10-06',
+    fecha_final: '2025-10-12',
+    tipo_de_reporte: 'Semanal',
+    total_ventas: 875450,
+  },
+  {
+    id_reporte: 103,
+    id_venta: 503,
+    fecha_inicio: '2025-09-01',
+    fecha_final: '2025-09-30',
+    tipo_de_reporte: 'Mensual',
+    total_ventas: 3450990,
+  },
+  {
+    id_reporte: 104,
+    id_venta: 504,
+    fecha_inicio: '2025-10-13',
+    fecha_final: '2025-10-13',
+    tipo_de_reporte: 'Diario',
+    total_ventas: 189500,
+  },
+  {
+    id_reporte: 105,
+    id_venta: 505,
+    fecha_inicio: '2025-09-29',
+    fecha_final: '2025-10-05',
+    tipo_de_reporte: 'Semanal',
+    total_ventas: 912800,
+  },
+];
 ---
 
-<AdminLayout title="Reportes | El Vecino">
-  <main class="min-h-[60vh] py-8">
-    <div class="max-w-7xl mx-auto space-y-8">
-      <div class="text-center">
-        <h1 class="text-4xl md:text-5xl font-bold mb-8">Reportes</h1>
-        <p class="text-white/80">Filtra y visualiza reportes de ventas e inventario</p>
-      </div>
-
-      <div class="flex justify-center">
-        <ReportsForm client:load />
-      </div>
-
-      <ReportsResults client:load />
+<!-- Se utiliza el mismo layout que en el resto de las páginas de administración -->
+<AdminLayout title="Gestión de Reportes | El Vecino">
+  
+  <!-- La sección principal usa el mismo estilo "glassmorphism" que la de operadores -->
+  <section class="w-full max-w-5xl mx-auto p-8 bg-white/30 backdrop-blur-md border border-white/40 rounded-2xl shadow-xl">
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-3xl font-bold text-white">Gestión de Reportes</h2>
+      <!-- Podrías añadir un botón para generar un nuevo reporte en el futuro -->
     </div>
-  </main>
+
+    <!-- El grid se reutiliza para mostrar las tarjetas de reportes -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {reportes.map(reporte => (
+        <div class="bg-white/80 rounded-xl p-6 flex flex-col shadow-md hover:shadow-lg transition-shadow">
+          
+          <div class="flex items-start justify-between mb-4">
+            <h3 class="font-bold text-xl text-gray-900">{reporte.tipo_de_reporte}</h3>
+            <span class="bg-gray-200 text-gray-800 text-xs font-semibold px-2.5 py-0.5 rounded-full">
+              ID: {reporte.id_reporte}
+            </span>
+          </div>
+
+          <div class="mb-4">
+            <p class="text-sm text-gray-500">Período</p>
+            <p class="font-semibold text-gray-800">
+              {new Date(reporte.fecha_inicio).toLocaleDateString('es-CL')} - {new Date(reporte.fecha_final).toLocaleDateString('es-CL')}
+            </p>
+          </div>
+          
+          <div class="mt-auto pt-4 border-t border-gray-200">
+            <p class="text-sm text-gray-500">Total Ventas</p>
+            <p class="text-2xl font-bold text-green-600">
+              {new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(reporte.total_ventas)}
+            </p>
+          </div>
+
+        </div>
+      ))}
+    </div>
+  </section>
+
 </AdminLayout>
