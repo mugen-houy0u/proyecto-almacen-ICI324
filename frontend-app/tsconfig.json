@@ -15,7 +15,12 @@
     "jsx": "react-jsx",
     "jsxImportSource": "preact",
     "types": ["astro/client"]
+  },
+  "extends": "astro/tsconfigs/strict",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    }
   }
-
-
 }

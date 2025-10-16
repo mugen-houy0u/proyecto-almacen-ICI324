@@ -2,125 +2,133 @@
 import { useState, useEffect } from "preact/hooks";
 
 export default function EditarOperadorForm({ id }) {
+  // CORREGIDO: El estado ahora coincide con los nombres de las columnas del backend
   const [formData, setFormData] = useState({
-    rut: "",
+    rut_empleado: "",
     nombre: "",
-    rol: "",
+    telefono: "",
+    correo: "",
   });
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
+  const [errorDetail, setErrorDetail] = useState("");
 
-  /* ---------- carga inicial ---------- */
+  // Carga inicial de datos del empleado
   useEffect(() => {
-    async function fetchOperador() {
+    let alive = true;
+    async function fetchEmpleado() {
       try {
-        const res = await fetch(`http://localhost:4321/api/operadores/${id}`);
-        if (!res.ok) throw new Error("Error al cargar operador");
+        // CORREGIDO: URL completa del backend y sin /api
+        const res = await fetch(`http://127.0.0.1:8000/empleados/${id}`);
+        if (!res.ok) {
+          const txt = await res.text();
+          throw new Error(`GET /empleados/${id} → ${res.status} ${txt}`);
+        }
         const data = await res.json();
+        if (!alive) return;
+        // Se llenan los datos del estado con la información del backend
         setFormData({
-          rut: data.rut || "",
-          nombre: data.nombre || "",
-          rol: data.rol || "",
+          rut_empleado: data.rut_empleado ?? "",
+          nombre: data.nombre ?? "",
+          telefono: data.telefono ?? "",
+          correo: data.correo ?? "",
         });
       } catch (err) {
         console.error(err);
-        setMessage("No se pudo cargar el operador.");
+        setMessage("❌ No se pudo cargar el empleado.");
+        setErrorDetail(String(err?.message ?? err));
       } finally {
-        setLoading(false);
+        if (alive) setLoading(false);
       }
     }
-    fetchOperador();
+    fetchEmpleado();
+    return () => {
+      alive = false;
+    };
   }, [id]);
 
-  /* ---------- handlers ---------- */
   function handleChange(e) {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   }
 
+  // Envío del formulario actualizado
   async function handleSubmit(e) {
     e.preventDefault();
     setMessage("");
+    setErrorDetail("");
+
     try {
-      const res = await fetch(`http://localhost:3000/api/operadores/${id}`, {
+      // CORREGIDO: URL completa y sin /api. El método es PUT.
+      const res = await fetch(`http://127.0.0.1:8000/empleados/${id}?telefono=${formData.telefono}&correo=${formData.correo}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
       });
-      if (!res.ok) throw new Error("Error al guardar cambios");
-      setMessage("Operador actualizado correctamente ✅");
+
+      if (!res.ok) {
+        let detail = "";
+        try {
+          const errJson = await res.json();
+          detail = errJson?.detail || JSON.stringify(errJson);
+        } catch {
+          detail = await res.text();
+        }
+        throw new Error(`PUT /empleados/${id} → ${res.status} ${detail}`);
+      }
+
+      await res.json().catch(() => null);
+      setMessage("✅ Empleado actualizado correctamente");
     } catch (err) {
       console.error(err);
-      setMessage("❌ Error al actualizar operador.");
+      setMessage("❌ Error al actualizar empleado.");
+      setErrorDetail(String(err?.message ?? err));
     }
   }
-
-  /* ---------- render ---------- */
+  
+  // Renderizado del componente
   if (loading)
     return (
-      <div class="flex items-center justify-center min-h-screen bg-[url('/bg.jpg')] bg-cover">
+      <div class="flex items-center justify-center">
         <p class="text-white text-lg">Cargando datos...</p>
       </div>
     );
 
   return (
-    <div class="flex items-center justify-center min-h-screen bg-[url('/bg.jpg')] bg-cover">
-      {/* ¡Contenedor grande ELIMINADO! */}
-      <form
-        onSubmit={handleSubmit}
-        class="flex flex-col gap-4 w-80 p-6 rounded-xl shadow-xl bg-white/20 backdrop-blur-lg border border-white/30"
-      >
-        <h2 class="text-2xl font-bold text-center text-black mb-2">
-          Editar Operador
-        </h2>
+    <div class="flex items-center justify-center">
+      <form onSubmit={handleSubmit} class="flex flex-col gap-4 w-80 p-6 rounded-xl shadow-xl bg-white/20 backdrop-blur-lg border border-white/30">
+        <h2 class="text-2xl font-bold text-center text-black mb-2">Editar Empleado</h2>
 
+        {/* Campo RUT (deshabilitado para que no se pueda editar) */}
         <div>
           <label class="block text-sm font-medium text-gray-900">RUT</label>
-          <input
-            name="rut"
-            value={formData.rut}
-            onChange={handleChange}
-            class="mt-1 w-full rounded-lg px-3 py-2 bg-white/80 text-black focus:outline-none focus:ring-2 focus:ring-black"
-            required
-          />
+          <input name="rut_empleado" value={formData.rut_empleado} class="mt-1 w-full rounded-lg px-3 py-2 bg-white/50 text-black/70 cursor-not-allowed" disabled />
         </div>
 
+        {/* Campo Nombre (deshabilitado) */}
         <div>
           <label class="block text-sm font-medium text-gray-900">Nombre</label>
-          <input
-            name="nombre"
-            value={formData.nombre}
-            onChange={handleChange}
-            class="mt-1 w-full rounded-lg px-3 py-2 bg-white/80 text-black focus:outline-none focus:ring-2 focus:ring-black"
-            required
-          />
+          <input name="nombre" value={formData.nombre} class="mt-1 w-full rounded-lg px-3 py-2 bg-white/50 text-black/70 cursor-not-allowed" disabled />
+        </div>
+
+        {/* CORREGIDO: Campos para Teléfono y Correo, que son los que el backend puede actualizar */}
+        <div>
+          <label class="block text-sm font-medium text-gray-900">Teléfono</label>
+          <input name="telefono" value={formData.telefono} onInput={handleChange} class="mt-1 w-full rounded-lg px-3 py-2 bg-white/80 text-black focus:outline-none focus:ring-2 focus:ring-black" required />
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-gray-900">Rol</label>
-          <select
-            name="rol"
-            value={formData.rol}
-            onChange={handleChange}
-            class="mt-1 w-full rounded-lg px-3 py-2 bg-white/80 text-black focus:outline-none focus:ring-2 focus:ring-black"
-            required
-          >
-            <option value="" disabled>Seleccionar rol</option>
-            <option value="administrador">Administrador</option>
-            <option value="operador">Operador</option>
-            <option value="supervisor">Supervisor</option>
-          </select>
+          <label class="block text-sm font-medium text-gray-900">Correo Electrónico</label>
+          <input type="email" name="correo" value={formData.correo} onInput={handleChange} class="mt-1 w-full rounded-lg px-3 py-2 bg-white/80 text-black focus:outline-none focus:ring-2 focus:ring-black" required />
         </div>
 
-        <button
-          type="submit"
-          class="w-full bg-black text-white font-semibold py-2 rounded-lg hover:bg-gray-800 transition"
-        >
+        <button type="submit" class="w-full bg-black text-white font-semibold py-2 rounded-lg hover:bg-gray-800 transition">
           Guardar cambios
         </button>
 
-        {message && (
-          <p class="text-center text-sm text-black mt-2">{message}</p>
+        {message && <p class="text-center text-sm text-black mt-2">{message}</p>}
+        {errorDetail && (
+          <pre class="text-xs text-red-700 bg-white/70 p-2 rounded mt-1 whitespace-pre-wrap">
+            {errorDetail}
+          </pre>
         )}
       </form>
     </div>

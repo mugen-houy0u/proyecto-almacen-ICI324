@@ -1,15 +1,34 @@
-// @ts-check
-import { defineConfig } from 'astro/config';
+import { defineConfig } from 'astro/config'
+import preact from '@astrojs/preact'
+import { fileURLToPath } from 'node:url'
 
 import tailwindcss from '@tailwindcss/vite';
 
-import preact from '@astrojs/preact';
+import node from "@astrojs/node";
 
-// https://astro.build/config
 export default defineConfig({
-  vite: {
-    plugins: [tailwindcss()]
-  },
+  integrations: [preact()],
+  
+  output: "server",
+  adapter: node({
+    mode: 'standalone',
+  }),
 
-  integrations: [preact()]
-});
+  vite: {
+    resolve: {
+      alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
+    },
+
+    server: {
+      port: 4321,
+      proxy: {
+        '/api': {
+          target: 'http://127.0.0.1:8000', // tu backend FastAPI
+          changeOrigin: true,
+        },
+      },
+    },
+
+    plugins: [tailwindcss()],
+  },
+})
