@@ -1,22 +1,18 @@
 ---
-// 1. Se importa el layout principal para la consistencia visual
+// 1. Se importa el layout principal
 import AdminLayout from '@/layouts/AdminLayout.astro';
-// 2. Se importa el componente de Preact que contiene toda la lógica
+// 2. Se importa el componente interactivo (ahora modificado)
 import ReportesManager from '@/components/ReportesManager.jsx';
 ---
 
-<!-- Se utiliza el layout de administración -->
-<AdminLayout title="Gestión de Reportes | El Vecino">
+<AdminLayout title="Reporte de Ventas por Día | El Vecino">
   
-  <!-- Contenedor principal para centrar el contenido -->
   <div class="flex flex-col items-center pt-28 p-8 gap-10">
     <h1 class="text-5xl font-extrabold text-white drop-shadow-lg">
-      Gestión de Reportes
+      Reporte de Ventas por Día
     </h1>
 
-    <!-- 3. Se renderiza el componente, y client:load lo hace interactivo en el navegador -->
     <ReportesManager client:load />
   </div>
 
 </AdminLayout>
-

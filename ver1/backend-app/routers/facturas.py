@@ -1,134 +1,228 @@
-from fastapi import APIRouter, HTTPException
-from fastapi.responses import StreamingResponse
-from pydantic import BaseModel, Field
-from typing import List
-import io
-from fpdf import FPDF
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
+import models
+from database import get_db
 
-# --- Modelos de Pydantic (sin cambios) ---
-class ItemFactura(BaseModel):
-    descripcion: str
-    cantidad: int
-    um: str
-    precio: int
-    impuesto: int
-    descuento: int
-    total: int
+# ==========================================================
+# ESTADO: OFICIAL
+# ==========================================================
 
-class TotalesFactura(BaseModel):
-    subtotal: str
-    impuestos: str
-    descuentos: str
-    total: str
 
-class ProveedorFactura(BaseModel):
-    rut: str
-    nombre: str
-    correo: str
-    giro: str
-    fechaEmision: str = Field(..., alias="fechaEmision")
-    formaPago: str = Field(..., alias="formaPago")
-
-class FacturaPayload(BaseModel):
-    proveedor: ProveedorFactura
-    items: List[ItemFactura]
-    totales: TotalesFactura
-
-# --- Router ---
+# ==========================================================
+# Grupo de rutas: FACTURAS
+# ==========================================================
 router = APIRouter(prefix="/facturas", tags=["Facturas"])
 
-# --- Clase Helper para generar el PDF con fpdf2 ---
-class PDF(FPDF):
-    def header(self):
-        self.set_font('Helvetica', 'B', 18)
-        self.cell(0, 10, 'Factura', 0, 1, 'C')
-        self.set_font('Helvetica', '', 10)
-        self.cell(0, 5, 'Emisor: El Vecino - www.elvecino.cl', 0, 1, 'C')
-        self.ln(10)
 
-    def footer(self):
-        self.set_y(-15)
-        self.set_font('Helvetica', 'I', 8)
-        self.cell(0, 10, f'Página {self.page_no()}', 0, 0, 'C')
+# ==========================================================
+# GET /facturas
+# Lista todas las facturas emitidas
+# ==========================================================
+@router.get(
+    "/",
+    summary="Listar todas las facturas emitidas",
+    response_description="Lista completa de facturas registradas",
+    status_code=status.HTTP_200_OK,
+)
+def get_facturas(db: Session = Depends(get_db)):
+    """
+    Retorna una lista con todas las facturas registradas.
 
-    def chapter_title(self, title):
-        self.set_font('Helvetica', 'B', 12)
-        self.cell(0, 6, title, 0, 1, 'L')
-        self.ln(4)
-
-    def chapter_body(self, data):
-        self.set_font('Helvetica', '', 10)
-        for key, value in data.items():
-            self.multi_cell(0, 5, f'{key}: {value}')
-        self.ln()
-    
-    def items_table(self, items):
-        self.set_font('Helvetica', 'B', 9)
-        col_width = [90, 25, 35, 40] # Descripción, Cant., Precio, Total
-        headers = ['Descripción', 'Cantidad', 'Precio Unit.', 'Total']
-        for i, header in enumerate(headers):
-            self.cell(col_width[i], 7, header, 1, 0, 'C')
-        self.ln()
-
-        self.set_font('Helvetica', '', 9)
-        for item in items:
-            start_y = self.get_y()
-            self.multi_cell(col_width[0], 6, item.descripcion, 1)
-            current_y = self.get_y()
-            
-            self.set_xy(self.get_x() + col_width[0], start_y)
-            self.cell(col_width[1], current_y - start_y, f'{item.cantidad} {item.um}', 1, 0, 'C')
-            self.cell(col_width[2], current_y - start_y, f'${item.precio:,}'.replace(',', '.'), 1, 0, 'R')
-            self.cell(col_width[3], current_y - start_y, f'${item.total:,}'.replace(',', '.'), 1, 0, 'R')
-            self.ln()
-    
-    def totals_section(self, totales):
-        self.ln(5)
-        table_width = 90 + 25 + 35 + 40
-        total_label_width = table_width - 40
-
-        self.set_font('Helvetica', '', 10)
-        self.cell(total_label_width, 6, 'Subtotal:', 0, 0, 'R')
-        self.cell(40, 6, totales.subtotal, 0, 1, 'R')
-        self.cell(total_label_width, 6, 'Impuestos:', 0, 0, 'R')
-        self.cell(40, 6, totales.impuestos, 0, 1, 'R')
-        self.cell(total_label_width, 6, 'Descuentos:', 0, 0, 'R')
-        self.cell(40, 6, totales.descuentos, 0, 1, 'R')
-        self.set_font('Helvetica', 'B', 12)
-        self.cell(total_label_width, 8, 'Total Factura:', 0, 0, 'R')
-        self.cell(40, 8, totales.total, 0, 1, 'R')
-
-
-# --- Endpoint para generar el PDF ---
-@router.post("/generar-pdf", summary="Generar factura en PDF")
-def generar_factura_pdf(payload: FacturaPayload):
+    ### Retorna:
+    - **200 OK**: Lista de facturas.
+    - **500 Internal Server Error**: Si ocurre un error inesperado.
+    """
     try:
-        pdf = PDF()
-        pdf.add_page()
-        
-        pdf.chapter_title('Datos del Proveedor')
-        proveedor_data = {
-            "Señor(es)": payload.proveedor.nombre,
-            "R.U.T.": payload.proveedor.rut,
-            "Giro": payload.proveedor.giro,
-            "Correo": payload.proveedor.correo,
-            "Fecha Emisión": payload.proveedor.fechaEmision,
-            "Forma de Pago": payload.proveedor.formaPago,
-        }
-        pdf.chapter_body(proveedor_data)
-
-        pdf.chapter_title('Detalle de Productos')
-        pdf.items_table(payload.items)
-
-        pdf.totals_section(payload.totales)
-        
-        # 👇 CORREGIDO: Genera el PDF directamente a bytes, que es más seguro y moderno.
-        pdf_bytes = pdf.output()
-        
-        return StreamingResponse(
-            io.BytesIO(pdf_bytes),
-            media_type="application/pdf",
-            headers={"Content-Disposition": f"attachment; filename=factura-{payload.proveedor.rut}.pdf"}
-        )
+        facturas = db.query(models.Factura).all()
+        return facturas
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error al generar el PDF: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error al obtener facturas: {e}")
+
+
+# ==========================================================
+# GET /facturas/{id_factura}
+# Obtiene el detalle completo de una factura por ID
+# ==========================================================
+@router.get(
+    "/{id_factura}",
+    summary="Obtener factura por ID",
+    response_description="Datos completos de una factura",
+    status_code=status.HTTP_200_OK,
+)
+def get_factura(id_factura: int, db: Session = Depends(get_db)):
+    """
+    Retorna los datos de una factura según su ID.
+
+    ### Parámetros:
+    - **id_factura (int)**: Identificador único de la factura.
+
+    ### Retorna:
+    - **200 OK**: Datos de la factura.
+    - **404 Not Found**: Si la factura no existe.
+    - **500 Internal Server Error**: Si ocurre un error inesperado.
+    """
+    try:
+        factura = db.query(models.Factura).filter(models.Factura.id_factura == id_factura).first()
+        if not factura:
+            raise HTTPException(status_code=404, detail="Factura no encontrada")
+        return factura
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error al consultar factura: {e}")
+
+
+
+# ==========================================================
+# POST /facturas
+# Crea una nueva factura
+# ==========================================================
+@router.post(
+    "/",
+    summary="Crear nueva factura",
+    response_description="Factura creada correctamente",
+    status_code=status.HTTP_201_CREATED,
+)
+def create_factura(
+    rut: str,
+    id_proveedor: int,
+    nombre_razon_social: str,
+    correo: str,
+    giro: int,
+    fecha_emision: str,
+    forma_de_pago: str,
+    db: Session = Depends(get_db),
+):
+    """
+    Crea una nueva factura en la base de datos.
+
+    ### Parámetros:
+    - **rut (str)**: Rut asociado de la factura.
+    - **id_proveedor (int)**: ID del proveedor asociado.
+    - **nombre_razon_social (str)**: Nombre o razón social.
+    - **correo (str)**: Correo del proveedor.
+    - **giro (int)**: Tipo de giro.
+    - **fecha_emision (str)**: Fecha de emisión de la factura.
+    - **forma_de_pago (str)**: Método o condición de pago.
+
+    ### Retorna:
+    - **201 Created**: Factura creada correctamente.
+    - **400 Bad Request**: Si los campos obligatorios faltan o ya existe el RUT.
+    - **500 Internal Server Error**: Si ocurre un error inesperado.
+    """
+    try:
+        if not all([rut, id_proveedor, nombre_razon_social, correo, giro, fecha_emision, forma_de_pago]):
+            raise HTTPException(status_code=400, detail="Faltan campos obligatorios")
+
+        existente = db.query(models.Factura).filter(models.Factura.rut == rut).first()
+        if existente:
+            raise HTTPException(status_code=400, detail="La factura ya existe")
+
+        nueva_factura = models.Factura(
+            rut=rut,
+            id_proveedor=id_proveedor,
+            nombre_razon_social=nombre_razon_social,
+            correo=correo,
+            giro=giro,
+            fecha_emision=fecha_emision,
+            forma_de_pago=forma_de_pago,
+        )
+
+        db.add(nueva_factura)
+        db.commit()
+        db.refresh(nueva_factura)
+
+        return {"msg": "Factura creada correctamente", "factura": nueva_factura}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error al crear factura: {e}")
+
+# ==========================================================
+# PUT /facturas/{id_factura}
+# Actualiza los datos de una factura
+# ==========================================================
+@router.put(
+    "/{id_factura}",
+    summary="Actualizar factura existente",
+    response_description="Factura actualizada correctamente",
+    status_code=status.HTTP_200_OK,
+)
+def update_factura(
+    id_factura: int,
+    id_proveedor: int,
+    nombre_razon_social: str,
+    correo: str,
+    giro: int,
+    fecha_emision: str,
+    forma_de_pago: str,
+    db: Session = Depends(get_db),
+):
+    """
+    Actualiza los datos de una factura existente.
+
+    ### Parámetros:
+    - **id_factura (int)**: ID de la factura a modificar.
+    - Los demás campos se pueden actualizar.
+
+    ### Retorna:
+    - **200 OK**: Factura actualizada correctamente.
+    - **404 Not Found**: Si la factura no existe.
+    - **500 Internal Server Error**: Si ocurre un error inesperado.
+    """
+    try:
+        factura = db.query(models.Factura).filter(models.Factura.id_factura == id_factura).first()
+        if not factura:
+            raise HTTPException(status_code=404, detail="Factura no encontrada")
+
+        factura.id_proveedor = id_proveedor
+        factura.nombre_razon_social = nombre_razon_social
+        factura.correo = correo
+        factura.giro = giro
+        factura.fecha_emision = fecha_emision
+        factura.forma_de_pago = forma_de_pago
+
+        db.commit()
+        db.refresh(factura)
+
+        return {"msg": "Factura actualizada correctamente", "facturaActualizada": factura}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error al actualizar factura: {e}")
+
+
+# ==========================================================
+# DELETE /facturas/{id_factura}
+# Elimina una factura por su ID
+# ==========================================================
+@router.delete(
+    "/{id_factura}",
+    summary="Eliminar factura por ID",
+    response_description="Factura eliminada correctamente",
+    status_code=status.HTTP_200_OK,
+)
+def delete_factura(id_factura: int, db: Session = Depends(get_db)):
+    """
+    Elimina una factura de la base de datos según su ID.
+
+    ### Parámetros:
+    - **id_factura (int)**: Identificador único de la factura.
+
+    ### Retorna:
+    - **200 OK**: Factura eliminada correctamente.
+    - **404 Not Found**: Si la factura no existe.
+    - **500 Internal Server Error**: Si ocurre un error inesperado.
+    """
+    try:
+        factura = db.query(models.Factura).filter(models.Factura.id_factura == id_factura).first()
+        if not factura:
+            raise HTTPException(status_code=404, detail="Factura no encontrada")
+
+        db.delete(factura)
+        db.commit()
+        return {"msg": "Factura eliminada correctamente"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error al eliminar factura: {e}")
