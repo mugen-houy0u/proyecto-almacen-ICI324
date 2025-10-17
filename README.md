@@ -1,44 +1,22 @@
-# 🧩 Estructura del Frontend
+# 🧩 Mañas de este proyecto
 
-Este proyecto utiliza **Astro + Preact + TailwindCSS** para la construcción del frontend.  
-A continuación se muestra la organización general de los archivos dentro del directorio `src/`.
-
----
-
-## 📁 Estructura de carpetas
-
+1. Todos los "componentes.py" del backend se encuentran en la carpeta de routers, por lo tanto al llamarlo desde frontend algunas rutas se repiten o son extrañas, como esta:
 ```bash
-src/
-├── layouts/
-│   ├── AdminLayout.astro
-│   ├── OperadorLayout.astro
-│   └── AuthLayout.astro          # (opcional) diseño para la vista de login
-│
-├── components/
-│   ├── Header.astro
-│   ├── Footer.astro
-│   ├── SidebarAdmin.astro
-│   ├── SidebarOperador.astro
-│   ├── LoginForm.astro
-│   └── forms/                    # subcarpeta opcional para formularios
-│       ├── ProveedorForm.astro
-│       └── OperadorForm.astro
-│
-└── pages/
-    ├── index.astro               # redirección o portada inicial
-    ├── login.astro               # vista de inicio de sesión
-    │
-    ├── admin/                    # secciones del rol administrador
-    │   ├── index.astro           # página principal de administrador
-    │   ├── proveedores.astro     # registro y gestión de proveedores
-    │   ├── operadores.astro      # añadir / editar operadores
-    │   └── roles.astro           # asignación de roles
-    │
-    └── operador/                 # secciones del rol operador
-        ├── index.astro           # página principal del operador
-        ├── ventas.astro
-        ├── productos.astro
-        ├── precios.astro
-        ├── stock.astro
-        └── reportes.astro
-
+https://just-creation-production-cae2.up.railway.app/ventas/ventas/por-fecha?fecha=2023-01-01
+```
+Cuando normalmente debería ser:
+```bash
+http://127.0.0.1:8000/ventas/por-fecha?fecha=2023-01-01
+```
+2. La sección de "factura.astro" funciona de manera irregular, solamente es un único archivo que esta encargado de exportar el formulario a PDF, de manera extraña al añadirle un layout común como "AdminLayout.astro" el componente de "html2pdf.js" no funciona correctamente, carga infinitamente
+---
+```bash
+⣿⣿⣿⣿⣿⣿⣿⣿⡿⠛⣋⣉⡛⠻⢉⣤⣤⣬⣉⠛⣿⣿⣿⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⣿⠀⣿⣿⠙⠀⠀⢹⡇⠀⠀⢠⣿⡟⢨⣿⣿⣿⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⡿⢁⣾⣿⣶⣶⣤⡌⠛⠁⠔⠦⠤⠴⢒⣿⣿⣷⡌⢻⣿⣿⣿⣿
+⣿⣿⡄⢻⣿⣿⣿⣿⣿⣶⡆⢸⣿⣿⣿⣿⣿⣿⠂⣾⣿⣿⣿⡇⢸⠃⣼⣿
+⣿⣿⣿⣿⢸⣿⣿⣿⣿⣿⡇⠈⣴⣶⣦⡈⢻⠃⣼⣿⣿⣿⣿⣿⢠⣿⣿⣿
+⣿⣿⣿⣿⣧⠘⢿⣿⣿⣿⣿⡄⠸⡿⠛⠛⢠⣿⣿⣿⣿⣿⠏⣰⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⣿⣷⣤⣉⠛⢿⣿⣿⠿⡿⠿⠿⠛⢋⣤⣾⣿⣿⣿⣿⣿⣿
+⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣄⠛⢃⣄⠒⢂⣰⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
+```
