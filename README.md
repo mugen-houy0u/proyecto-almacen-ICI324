@@ -2,7 +2,7 @@
 
 1. Todos los "componentes.py" del backend se encuentran en la carpeta de routers, por lo tanto al llamarlo desde frontend algunas rutas se repiten o son extrañas, como esta:
 ```bash
-https://just-creation-production-cae2.up.railway.app/ventas/ventas/por-fecha?fecha=2023-01-01
+http://127.0.0.1:8000/ventas/ventas/por-fecha?fecha=2023-01-01
 ```
 Cuando normalmente debería ser:
 ```bash
